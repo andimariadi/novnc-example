@@ -15,40 +15,77 @@
     const dynamicHost = getUrlParameter('host');
     const dynamicPort = getUrlParameter('port');
     
+    console.log('Dynamic config loaded:', { dynamicHost, dynamicPort });
+    
     // Override the WebSocket URL if dynamic parameters are provided
     if (dynamicHost || dynamicPort) {
         // Wait for noVNC modules to load
         document.addEventListener('DOMContentLoaded', function() {
             // Set timeout to ensure all modules are loaded
             setTimeout(function() {
-                // Override the getSetting function for host and port
-                if (window.UI && typeof window.UI.getSetting === 'function') {
-                    const originalGetSetting = window.UI.getSetting;
+                // Override WebUtil.getConfigVar function
+                if (window.WebUtil && typeof window.WebUtil.getConfigVar === 'function') {
+                    const originalGetConfigVar = window.WebUtil.getConfigVar;
                     
-                    window.UI.getSetting = function(name) {
-                        if (name === 'host' && dynamicHost) {
-                            return dynamicHost;
+                    window.WebUtil.getConfigVar = function(name, defVal) {
+                        // Override host to point to our proxy server
+                        if (name === 'host') {
+                            return window.location.hostname; // Use current server IP
                         }
-                        if (name === 'port' && dynamicPort) {
-                            return dynamicPort;
+                        // Override port to use our WebSocket proxy port
+                        if (name === 'port') {
+                            return '7576'; // Our WebSocket proxy port
                         }
-                        // For path, we need to include the dynamic parameters
+                        // Override path to include dynamic parameters
                         if (name === 'path') {
-                            let path = originalGetSetting.call(this, name) || '/';
+                            let path = '/';
                             if (dynamicHost || dynamicPort) {
                                 const params = new URLSearchParams();
                                 if (dynamicHost) params.set('host', dynamicHost);
                                 if (dynamicPort) params.set('port', dynamicPort);
-                                path += (path.includes('?') ? '&' : '?') + params.toString();
+                                path += '?' + params.toString();
                             }
                             return path;
                         }
-                        return originalGetSetting.call(this, name);
+                        // For encrypt, default to false for ws:// instead of wss://
+                        if (name === 'encrypt') {
+                            return false;
+                        }
+                        return originalGetConfigVar.call(this, name, defVal);
                     };
                     
-                    console.log('Dynamic WebSocket configuration enabled');
-                    if (dynamicHost) console.log('Dynamic host:', dynamicHost);
-                    if (dynamicPort) console.log('Dynamic port:', dynamicPort);
+                    console.log('✅ Dynamic WebSocket configuration enabled');
+                    console.log('WebSocket will connect to:', window.location.hostname + ':7576');
+                    if (dynamicHost) console.log('Target VNC host:', dynamicHost);
+                    if (dynamicPort) console.log('Target VNC port:', dynamicPort);
+                }
+                
+                // Also try to override UI.getSetting if it exists
+                if (window.UI && typeof window.UI.getSetting === 'function') {
+                    const originalGetSetting = window.UI.getSetting;
+                    
+                    window.UI.getSetting = function(name) {
+                        if (name === 'host') {
+                            return window.location.hostname;
+                        }
+                        if (name === 'port') {
+                            return '7576';
+                        }
+                        if (name === 'path') {
+                            let path = '/';
+                            if (dynamicHost || dynamicPort) {
+                                const params = new URLSearchParams();
+                                if (dynamicHost) params.set('host', dynamicHost);
+                                if (dynamicPort) params.set('port', dynamicPort);
+                                path += '?' + params.toString();
+                            }
+                            return path;
+                        }
+                        if (name === 'encrypt') {
+                            return false;
+                        }
+                        return originalGetSetting.call(this, name);
+                    };
                 }
             }, 1000);
         });

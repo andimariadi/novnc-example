@@ -74,9 +74,10 @@
             <h3>Cara Penggunaan:</h3>
             <p><strong>Metode 1 - Form:</strong> Isi form di bawah ini dan klik "Connect to VNC"</p>
             <p><strong>Metode 2 - URL Direct:</strong> Akses langsung dengan URL:</p>
-            <code>http://localhost:7575/vnc/vnc.html?host=IP_ADDRESS&port=VNC_PORT</code>
-            <p><strong>Contoh:</strong></p>
-            <code>http://localhost:7575/vnc/vnc.html?host=192.168.1.100&port=5900</code>
+            <code>http://YOUR_SERVER_IP:7575/vnc/vnc.html?host=VNC_IP&port=VNC_PORT</code>
+            <p><strong>Contoh untuk server ini:</strong></p>
+            <code id="example-url">http://localhost:7575/vnc/vnc.html?host=192.168.1.100&port=5900</code>
+            <p><strong>Info:</strong> WebSocket akan otomatis diarahkan ke proxy server ini.</p>
         </div>
 
         <form id="vncForm">
@@ -96,6 +97,16 @@
     </div>
 
     <script>
+        // Update example URL with current server
+        document.addEventListener('DOMContentLoaded', function() {
+            const exampleUrl = document.getElementById('example-url');
+            if (exampleUrl) {
+                const currentHost = window.location.hostname;
+                const currentPort = window.location.port || '7575';
+                exampleUrl.textContent = `http://${currentHost}:${currentPort}/vnc/vnc.html?host=192.168.1.100&port=5900`;
+            }
+        });
+        
         function connectVNC() {
             const host = document.getElementById('host').value;
             const port = document.getElementById('port').value;
