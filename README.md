@@ -101,12 +101,56 @@ docker stop novnc-proxy
 docker rm novnc-proxy
 ```
 
-## Architecture
+## VPS sebagai VPN Server
 
+Jika VPS Anda adalah server VPN dan ingin mengakses client VPN (seperti `10.8.10.6`):
+
+### 1. Gunakan Host Network Mode (Direkomendasikan)
+
+```bash
+# Gunakan docker-compose.yml yang sudah dikonfigurasi dengan host network
+docker-compose up -d
 ```
-[Browser] → [noVNC Client] → [WebSocket :7576] → [VNC Server :5900]
-    ↑              ↑
-[HTTP :7575]   [Dynamic Config]
+
+### 2. Alternatif: Bridge Network dengan Extra Capabilities
+
+```bash
+# Jika host network tidak bekerja, gunakan bridge network
+docker-compose -f docker-compose.bridge.yml up -d
+```
+
+### 3. Troubleshooting Network
+
+```bash
+# Cek apakah VPS bisa ping ke target VNC
+ping 10.8.10.6
+
+# Cek port VNC terbuka
+telnet 10.8.10.6 5900
+
+# Cek routing table
+ip route | grep 10.8.10
+
+# Cek interface VPN
+ip addr show tun0
+# atau
+ip addr show tap0
+
+# Cek logs container
+docker-compose logs -f novnc-proxy
+```
+
+### 4. Test Koneksi dari Container
+
+```bash
+# Masuk ke container untuk debug
+docker exec -it novnc-proxy sh
+
+# Test ping dari dalam container
+ping 10.8.10.6
+
+# Test telnet dari dalam container
+telnet 10.8.10.6 5900
 ```
 
 ## Troubleshooting

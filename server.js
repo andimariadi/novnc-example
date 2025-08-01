@@ -44,20 +44,20 @@ server.listen(HTTP_PORT, () => {
 const wss = new WebSocket.Server({ port: WEBSOCKET_PORT });
 
 wss.on('connection', (ws, req) => {
-  console.log('WebSocket connection established');
+  console.log('WebSocket connection established from:', req.connection.remoteAddress);
   
   // Parse URL untuk mendapatkan parameter host dan port
   const url = new URL(req.url, `http://localhost:${WEBSOCKET_PORT}`);
   const targetHost = url.searchParams.get('host') || VNC_HOST;
   const targetPort = parseInt(url.searchParams.get('port')) || WS_PORT;
   
-  console.log(`Connecting to VNC server at ${targetHost}:${targetPort}`);
+  console.log(`Attempting to connect to VNC server at ${targetHost}:${targetPort}`);
   
   // Create TCP connection to VNC server
   const vnc = net.createConnection(targetPort, targetHost);
   
   vnc.on('connect', () => {
-    console.log(`Connected to VNC server at ${targetHost}:${targetPort}`);
+    console.log(`✅ Successfully connected to VNC server at ${targetHost}:${targetPort}`);
   });
   
   vnc.on('data', (data) => {
@@ -67,12 +67,13 @@ wss.on('connection', (ws, req) => {
   });
   
   vnc.on('error', (err) => {
-    console.error(`VNC connection error to ${targetHost}:${targetPort}:`, err);
+    console.error(`❌ VNC connection error to ${targetHost}:${targetPort}:`, err.message);
+    console.error('Full error:', err);
     ws.close();
   });
   
   vnc.on('close', () => {
-    console.log(`VNC connection to ${targetHost}:${targetPort} closed`);
+    console.log(`🔌 VNC connection to ${targetHost}:${targetPort} closed`);
     ws.close();
   });
   
@@ -81,12 +82,12 @@ wss.on('connection', (ws, req) => {
   });
   
   ws.on('close', () => {
-    console.log('WebSocket connection closed');
+    console.log('🔌 WebSocket connection closed');
     vnc.end();
   });
   
   ws.on('error', (err) => {
-    console.error('WebSocket error:', err);
+    console.error('❌ WebSocket error:', err.message);
     vnc.end();
   });
 });

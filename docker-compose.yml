@@ -4,9 +4,8 @@ services:
       context: .
       dockerfile: Dockerfile
     container_name: novnc-proxy
-    ports:
-      - "7575:7575"   # HTTP server untuk noVNC client
-      - "7576:7576"   # WebSocket proxy port
+    # Gunakan host network agar container bisa akses VPN interface
+    network_mode: "host"
     environment:
       - NODE_ENV=production
       - HTTP_PORT=7575
@@ -16,8 +15,6 @@ services:
     volumes:
       # Mount konfigurasi jika diperlukan
       - ./config:/app/config:ro
-    networks:
-      - novnc-network
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:7575/vnc/"]
@@ -44,16 +41,12 @@ services:
   #     - RESOLUTION=1024x768
   #   volumes:
   #     - vnc-data:/home/ubuntu
-  #   networks:
-  #     - novnc-network
   #   restart: unless-stopped
 
-networks:
-  novnc-network:
-    driver: bridge
-    ipam:
-      config:
-        - subnet: 172.20.0.0/16
+# Networks tidak diperlukan karena menggunakan host network
+# networks:
+#   novnc-network:
+#     driver: bridge
 
 volumes:
   vnc-data:
