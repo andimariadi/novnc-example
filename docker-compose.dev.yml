@@ -1,0 +1,27 @@
+services:
+  novnc-proxy-dev:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: development
+    container_name: novnc-proxy-dev
+    ports:
+      - "7575:7575"
+      - "7576:7576"
+    environment:
+      - NODE_ENV=development
+      - HTTP_PORT=7575
+      - WEBSOCKET_PORT=7576
+      - DEFAULT_VNC_HOST=10.8.10.6
+      - DEFAULT_VNC_PORT=5900
+    volumes:
+      - .:/app
+      - /app/node_modules
+    networks:
+      - novnc-network
+    restart: unless-stopped
+    command: ["node", "--inspect=0.0.0.0:9229", "server.js"]
+
+networks:
+  novnc-network:
+    driver: bridge

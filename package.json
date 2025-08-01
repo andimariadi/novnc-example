@@ -1,0 +1,28 @@
+{
+  "name": "novnc-proxy",
+  "version": "1.0.0",
+  "description": "Dynamic noVNC proxy server with Docker support",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --inspect server.js",
+    "docker:build": "docker build -t novnc-proxy .",
+    "docker:run": "docker run -d -p 7575:7575 -p 7576:7576 --name novnc-proxy novnc-proxy",
+    "docker:stop": "docker stop novnc-proxy && docker rm novnc-proxy",
+    "compose:up": "docker-compose up -d",
+    "compose:down": "docker-compose down",
+    "compose:logs": "docker-compose logs -f",
+    "compose:dev": "docker-compose -f docker-compose.dev.yml up -d",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": ["novnc", "vnc", "proxy", "websocket", "docker"],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@novnc/novnc": "^1.6.0",
+    "express": "^5.1.0",
+    "mime": "3.0.0",
+    "node-websockify": "^1.0.3",
+    "ws": "^8.18.3"
+  }
+}
